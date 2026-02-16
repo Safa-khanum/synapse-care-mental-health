@@ -1,0 +1,43 @@
+import { useState } from "react";
+
+export default function LabReport() {
+  const [file, setFile] = useState<File | null>(null);
+  const [result, setResult] = useState<any>(null);
+
+  const upload = async () => {
+    if (!file) return alert("Please select a file");
+
+    const fd = new FormData();
+    fd.append("report", file);
+
+    const res = await fetch("http://localhost:5000/analyze", {
+      method: "POST",
+      body: fd
+    });
+
+    const data = await res.json();
+    setResult(data);
+  };
+
+  return (
+    <div style={{ padding: "40px" }}>
+      <h1>Lab Report Analyzer</h1>
+
+      <input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+
+      <button onClick={upload}>Analyze</button>
+
+      {result && (
+        <div style={{ marginTop: "20px", padding: "20px", background: "#f5f5f5" }}>
+          <h2>Overall Status: {result.overall_status}</h2>
+
+          {Object.entries(result.summary).map(([k, v]: any) => (
+            <div key={k} style={{ margin: "10px", padding: "10px", background: v.status === "normal" ? "#d7ffd7" : "#ffd7d7" }}>
+              <b>{v.label}</b>: {v.value} {v.unit}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
